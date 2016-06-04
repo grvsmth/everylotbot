@@ -63,7 +63,7 @@ class EveryLot(object):
         self.logger = kwargs.get('logger', logging.getLogger('everylot'))
 
         # set address format for fetching from DB
-        self.search_format = search_format or '{address}, {city} {state}'
+        self.search_format = search_format or '{address}, {zip_city} {state}'
         self.print_format = print_format or '{spc_common} in {health} health at {address}, {boroname}'
 
         self.logger.debug('searching google sv with %s', self.search_format)
@@ -146,8 +146,9 @@ class EveryLot(object):
         # bounds in (miny minx maxy maxx) aka (s w n e)
         try:
             d = 0.007
-            minpt = self.lot[LAT] - d, self.lot[LON] - d
-            maxpt = self.lot[LAT] + d, self.lot[LON] + d
+
+            minpt = float(self.lot[LAT]) - d, float(self.lot[LON]) - d
+            maxpt = float(self.lot[LAT]) + d, float(self.lot[LON]) + d
 
         except KeyError:
             self.logger.info('No lat/lon coordinates. Using address naively.')
