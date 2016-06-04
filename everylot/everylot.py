@@ -64,7 +64,7 @@ class EveryLot(object):
 
         # set address format for fetching from DB
         self.search_format = search_format or '{address}, {zip_city} {state}'
-        self.print_format = print_format or '{spc_common} in {health} health at {address}, {boroname}'
+        self.print_format = print_format or '{spc_common} in {health} health at {address}, {boroname}\nhttps://tree-map.nycgovparks.org/#treeinfo-{tree_id}'
 
         self.logger.debug('searching google sv with %s', self.search_format)
         self.logger.debug('posting with %s', self.print_format)
@@ -197,6 +197,10 @@ class EveryLot(object):
         self.logger.debug("media_id_string: %s", media_id_string)
 
         # Let missing addresses play through here, let the program leak out a bit
+        self.lot['address'] = self.lot['address'].title()
+        if ('Honeylocust var. inermis' == self.lot['spc_common']):
+            self.lot['spc_common'] = 'Honey locust'
+
         status = self.print_format.format(**self.lot)
 
         return {
