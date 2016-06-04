@@ -20,23 +20,17 @@ import sqlite3
 import logging
 from io import BytesIO
 import requests
+import csv, random
 
 TABLE = 'TreesCount2015Trees'
 ID = 'tree_id'
-
-OLD_QUERY = """SELECT
-    *
-    FROM """ + TABLE + """
-    where {} = ?
-    ORDER BY """ + ID + """ ASC
-    LIMIT 1;
-"""
+SORT_ORDER = 'RANDOM()'
 
 QUERY = """SELECT
     *
     FROM """ + TABLE + """
     where {} = ?
-    ORDER BY RANDOM() ASC
+    ORDER BY """ + SORT_ORDER + """ ASC
     LIMIT 1;
 """
 
@@ -189,6 +183,44 @@ class EveryLot(object):
             self.logger.info('location with db coords: %s, %s', self.lot[LAT], self.lot[LON])
             return '{},{}'.format(self.lot[LAT], self.lot[LON])
 
+    def pick_sentence(self):
+        treeInfo = self.lot
+        pickedSentence = ''
+
+        """ Randomly select a sentence appropriate to the species and
+        health status
+	
+	The function takes a dictionary with the tree dataset for a
+	single tree as input, randomly selects a sentence that
+	fullfills the spc_latin, health and steward criteria (if
+	given) and replaces any mention of tree parameters inside
+	curly braces.
+
+	"""
+
+
+	# pick a sentence
+        with open('data/EveryTreeNYC_Phrases.csv', 'rU') as csvfile:
+            spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+
+            sentenceList = []
+            for row in spamreader:
+                sentenceList.append(row)
+                random.shuffle(sentenceList)
+
+                for row in sentenceList:
+                    if len(row[0]) > 0 and not row[0] == treeInfo['spc_latin']:
+                        continue
+                    if len(row[1]) > 0 and not row[1] == treeInfo['health']:
+                        continue
+                    if len(row[2]) > 0 and not row[2] == treeInfo['steward']:
+                        continue
+                    pickedSentence = row[3]
+                    break
+
+        # do replacements
+        return pickedSentence.format(**treeInfo)
+
     def compose(self, media_id_string):
         '''
         Compose a tweet, including media ids and location info.
@@ -201,7 +233,8 @@ class EveryLot(object):
         if ('Honeylocust var. inermis' == self.lot['spc_common']):
             self.lot['spc_common'] = 'Honey locust'
 
-        status = self.print_format.format(**self.lot)
+#        status = self.print_format.format(**self.lot)
+        status = self.pick_sentence()
 
         return {
             "status": status,
@@ -213,3 +246,4 @@ class EveryLot(object):
     def mark_as_tweeted(self):
         self.conn.execute("UPDATE " + TABLE + " SET tweeted = 1 WHERE " + ID + " = ?", (self.lot[ID],))
         self.conn.commit()
+

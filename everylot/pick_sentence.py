@@ -1,12 +1,16 @@
 
 import csv, random
 
-def generateRandomSentence(treeInfo):
-	""" Randomly select a sentence appropriate to the species and health status
+def pick_sentence(treeInfo):
+
+	""" Randomly select a sentence appropriate to the species and
+	health status
 	
-	The function takes a dictionary with the tree dataset for a single tree as input, 
-	randomly selects a sentence that fullfills the spc_latin, health and steward
-	criteria (if given) and replaces any mention of tree parameters inside curly braces. 
+	The function takes a dictionary with the tree dataset for a
+	single tree as input, randomly selects a sentence that
+	fullfills the spc_latin, health and steward criteria (if
+	given) and replaces any mention of tree parameters inside
+	curly braces.
 
 	"""
 
@@ -43,4 +47,4 @@ def generateRandomSentence(treeInfo):
 if __name__ == "__main__":
 
 	treeInfo = {'spc_latin' : "Quercus palustris", 'health' : "", 'steward' : "", "spc_common" : "My Tree Name"}
-	print generateRandomSentence(treeInfo)
+	print (pick_sentence(treeInfo))
