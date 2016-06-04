@@ -1,9 +1,0 @@
-apps:
-    everylot:
-        consumer_key:	Q6LlcpOC4dbcNS2oOeisevRcj
-        consumer_secret: tBnpbC3djgsoVeG7QlgtzlppcLdLD1QL95CWZZBogH3ScNHFON
-users:
-    everytreenyc:
-        key: 123456890123456890-123456890123456890123456890123456890
-        secret: 1234568901234568901234568901234568901234568
-        app: everylot
