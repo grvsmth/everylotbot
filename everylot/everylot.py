@@ -190,36 +190,43 @@ class EveryLot(object):
         """ Randomly select a sentence appropriate to the species and
         health status
 	
-	The function takes a dictionary with the tree dataset for a
-	single tree as input, randomly selects a sentence that
-	fullfills the spc_latin, health and steward criteria (if
-	given) and replaces any mention of tree parameters inside
-	curly braces.
+        The function takes a dictionary with the tree dataset for a
+        single tree as input, randomly selects a sentence that
+        fullfills the spc_latin, health and steward criteria (if
+        given) and replaces any mention of tree parameters inside
+        curly braces.
 
-	"""
+        """
 
 
-	# pick a sentence
+        # pick a sentence
         with open('data/EveryTreeNYC_Phrases.csv', 'rU') as csvfile:
-            spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            #reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            reader = csv.DictReader(csvfile)
 
             sentenceList = []
-            for row in spamreader:
+            for row in reader:
                 sentenceList.append(row)
-                random.shuffle(sentenceList)
 
-                for row in sentenceList:
-                    if len(row[0]) > 0 and not row[0] == treeInfo['spc_latin']:
-                        continue
-                    if len(row[1]) > 0 and not row[1] == treeInfo['health']:
-                        continue
-                    if len(row[2]) > 0 and not row[2] == treeInfo['steward']:
-                        continue
-                    pickedSentence = row[3]
-                    break
+            random.shuffle(sentenceList)
 
-        # do replacements
-        return pickedSentence.format(**treeInfo)
+            for row in sentenceList:
+                isRejected = False
+                for myfilter in ['spc_latin', 'health', 'steward', 'status']:
+                    if len(row[myfilter]) > 0 and not row[myfilter] == treeInfo[myfilter]:
+                        isRejected = True
+                        break
+
+                if isRejected:
+                    continue
+
+                pickedSentence = row['sentence']
+                break
+
+            # do replacements
+            return pickedSentence.format(**treeInfo)
+
+        return ""
 
     def compose(self, media_id_string):
         '''
