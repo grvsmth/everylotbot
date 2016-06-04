@@ -23,7 +23,7 @@ import requests
 
 QUERY = """SELECT
     *
-    FROM lots
+    FROM trees
     where {} = ?
     ORDER BY id ASC
     LIMIT 1;
@@ -32,6 +32,8 @@ QUERY = """SELECT
 SVAPI = "https://maps.googleapis.com/maps/api/streetview"
 GCAPI = "https://maps.googleapis.com/maps/api/geocode/json"
 
+LAT = 'latitude'
+LON = 'longitude'
 
 class EveryLot(object):
 
@@ -184,8 +186,8 @@ class EveryLot(object):
 
         return {
             "status": status,
-            "lat": self.lot.get('lat', 0.),
-            "long": self.lot.get('lon', 0.),
+            "lat": self.lot.get(LAT, 0.),
+            "long": self.lot.get(LON, 0.),
             "media_ids": [media_id_string]
         }
 
