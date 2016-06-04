@@ -233,8 +233,10 @@ class EveryLot(object):
         if ('Honeylocust var. inermis' == self.lot['spc_common']):
             self.lot['spc_common'] = 'Honey locust'
 
-#        status = self.print_format.format(**self.lot)
-        status = self.pick_sentence()
+        if (random.choice([True, False])): 
+            status = self.print_format.format(**self.lot)
+        else:
+            status = self.pick_sentence()
 
         return {
             "status": status,
