@@ -21,16 +21,29 @@ import logging
 from io import BytesIO
 import requests
 
+TABLE = 'TreesCount2015Trees'
+ID = 'tree_id'
+
+OLD_QUERY = """SELECT
+    *
+    FROM """ + TABLE + """
+    where {} = ?
+    ORDER BY """ + ID + """ ASC
+    LIMIT 1;
+"""
+
 QUERY = """SELECT
     *
-    FROM trees
+    FROM """ + TABLE + """
     where {} = ?
-    ORDER BY id ASC
+    ORDER BY RANDOM() ASC
     LIMIT 1;
 """
 
 SVAPI = "https://maps.googleapis.com/maps/api/streetview"
 GCAPI = "https://maps.googleapis.com/maps/api/geocode/json"
+
+# constants for column names
 
 LAT = 'latitude'
 LON = 'longitude'
@@ -51,7 +64,7 @@ class EveryLot(object):
 
         # set address format for fetching from DB
         self.search_format = search_format or '{address}, {city} {state}'
-        self.print_format = print_format or '{address}'
+        self.print_format = print_format or '{spc_common} in {health} health at {address}, {boroname}'
 
         self.logger.debug('searching google sv with %s', self.search_format)
         self.logger.debug('posting with %s', self.print_format)
@@ -59,12 +72,13 @@ class EveryLot(object):
         self.conn = sqlite3.connect(database)
 
         if id_:
-            field = 'id'
+            field = ID
             value = id_
         else:
             field = 'tweeted'
             value = 0
 
+#        print(QUERY.format(field), (value,))
         curs = self.conn.execute(QUERY.format(field), (value,))
         keys = [c[0] for c in curs.description]
         self.lot = dict(zip(keys, curs.fetchone()))
@@ -127,13 +141,13 @@ class EveryLot(object):
 
         except KeyError:
             self.logger.warn('Could not find street address, using lat/lon')
-            return '{},{}'.format(self.lot['lat'], self.lot['lon'])
+            return '{},{}'.format(self.lot[LAT], self.lot[LON])
 
         # bounds in (miny minx maxy maxx) aka (s w n e)
         try:
             d = 0.007
-            minpt = self.lot['lat'] - d, self.lot['lon'] - d
-            maxpt = self.lot['lat'] + d, self.lot['lon'] + d
+            minpt = self.lot[LAT] - d, self.lot[LON] - d
+            maxpt = self.lot[LAT] + d, self.lot[LON] + d
 
         except KeyError:
             self.logger.info('No lat/lon coordinates. Using address naively.')
@@ -171,8 +185,8 @@ class EveryLot(object):
 
         except Exception as e:
             self.logger.info(e)
-            self.logger.info('location with db coords: %s, %s', self.lot['lat'], self.lot['lon'])
-            return '{},{}'.format(self.lot['lat'], self.lot['lon'])
+            self.logger.info('location with db coords: %s, %s', self.lot[LAT], self.lot[LON])
+            return '{},{}'.format(self.lot[LAT], self.lot[LON])
 
     def compose(self, media_id_string):
         '''
@@ -192,5 +206,5 @@ class EveryLot(object):
         }
 
     def mark_as_tweeted(self):
-        self.conn.execute("UPDATE lots SET tweeted = 1 WHERE id = ?", (self.lot['id'],))
+        self.conn.execute("UPDATE " + TABLE + " SET tweeted = 1 WHERE " + ID + " = ?", (self.lot[ID],))
         self.conn.commit()

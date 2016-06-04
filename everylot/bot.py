@@ -20,6 +20,9 @@ import twitter_bot_utils as tbu
 from . import __version__ as version
 from .everylot import EveryLot
 
+ID = 'tree_id'
+LAT = 'latitude'
+LON = 'longitude'
 
 def main():
     parser = argparse.ArgumentParser(description='every lot twitter bot')
@@ -48,8 +51,8 @@ def main():
         logger.error('No lot found')
         return
 
-    logger.debug('%s addresss: %s zip: %s', el.lot['id'], el.lot.get('address'), el.lot.get('zip'))
-    logger.debug('db location %s,%s', el.lot['lat'], el.lot['lon'])
+    logger.debug('%s addresss: %s zip: %s', el.lot[ID], el.lot.get('address'), el.lot.get('zip'))
+    logger.debug('db location %s,%s', el.lot[LAT], el.lot[LON])
 
     # get the streetview image and upload it
     image = el.get_streetview_image(api.config['streetview'])
