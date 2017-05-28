@@ -26,14 +26,6 @@ TABLE = 'TreesCount2015Trees'
 ID = 'tree_id'
 SORT_ORDER = 'RANDOM()'
 
-QUERY = """SELECT
-    *
-    FROM """ + TABLE + """
-    where {} = ?
-    ORDER BY """ + SORT_ORDER + """ ASC
-    LIMIT 1;
-"""
-
 SVAPI = "https://maps.googleapis.com/maps/api/streetview"
 GCAPI = "https://maps.googleapis.com/maps/api/geocode/json"
 
@@ -41,6 +33,14 @@ GCAPI = "https://maps.googleapis.com/maps/api/geocode/json"
 
 LAT = 'latitude'
 LON = 'longitude'
+
+QUERY = """SELECT
+    *
+    FROM """ + TABLE + """
+    where {} = ?
+    ORDER BY """ + SORT_ORDER + """ ASC
+    LIMIT 1;
+"""
 
 class EveryLot(object):
 
@@ -189,7 +189,7 @@ class EveryLot(object):
 
         """ Randomly select a sentence appropriate to the species and
         health status
-	
+
         The function takes a dictionary with the tree dataset for a
         single tree as input, randomly selects a sentence that
         fullfills the spc_latin, health and steward criteria (if
@@ -253,6 +253,7 @@ class EveryLot(object):
         }
 
     def mark_as_tweeted(self):
-        self.conn.execute("UPDATE " + TABLE + " SET tweeted = 1 WHERE " + ID + " = ?", (self.lot[ID],))
+        tweetedq = "UPDATE {} SET tweeted = 1 WHERE {} = ?".format(TABLE, ID)
+        self.conn.execute(tweetedq, (self.lot[ID],))
         self.conn.commit()
 

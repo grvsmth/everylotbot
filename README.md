@@ -1,7 +1,10 @@
-# every lot bot
+# every tree bot
 
-This library supports a Twitter bot that posts Google Streetview pictures of every property in an SQLite database. 
-Existing instances of the bot: <a href="https://twitter.com/everylotnyc">@everylotnyc</a>, <a href="https://twitter.com/everylotchicago">@everylotchicago</a>, <a href="https://twitter.com/everylotsf">@everylotsf</a> and <a href="https://twitter.com/everylotla">@everylotla</a>. Since maps are instruments of power, these bots is a way of generating a tension between two different modes establishing power in urban space. [Read more about that](http://fakeisthenewreal.org/everylot/).
+This is a fork of the *everylotbot* library by Neil Freeman.  It was created by Angus B. Grieve-Smith, Timm Dapper, Laura Silver and Elber Carneiro for the 2016 Trees Count! Data Jam sponsored by the New York City Parks Department.
+
+*everytreebot* supports a Twitter bot that posts Google Streetview pictures of every property in an SQLite database.  It is currently running at <a href="https://twitter.com/everytreenyc">@everytreenyc</a>.
+
+Existing instances of everylotbot: <a href="https://twitter.com/everylotnyc">@everylotnyc</a>, <a href="https://twitter.com/everylotchicago">@everylotchicago</a>, <a href="https://twitter.com/everylotsf">@everylotsf</a> and <a href="https://twitter.com/everylotla">@everylotla</a>. Since maps are instruments of power, these bots is a way of generating a tension between two different modes establishing power in urban space. [Read more about that](http://fakeisthenewreal.org/everylot/).
 
 ## What you'll need
 
@@ -54,7 +57,7 @@ Parcels_2015.dbf Parcels_2015.prj Parcels_2015.shp Parcels_2015.shx Parcels_2015
 
 While you're at it, make sure to download the metadata and carefully note the fields you'll want to track. At a minimum, you'll need an ID field and an address field. The address may be broken into several parts, that's fine. A field that tracts the number of floors would be nice, too.
 
-Your goal is to create CSV with these fields: `id`, `lat`, `lon`, `tweeted` (the last should just be empty). You must also have some fields that represent the address, like `address`, `city` and `state`. Or, you might have `address_number`, `street_name` and `city`. Optionally, a `floors` field is useful for pointing the Streetview "camera". 
+Your goal is to create CSV with these fields: `id`, `lat`, `lon`, `tweeted` (the last should just be empty). You must also have some fields that represent the address, like `address`, `city` and `state`. Or, you might have `address_number`, `street_name` and `city`. Optionally, a `floors` field is useful for pointing the Streetview "camera".
 
 One way to create a CSV like this is using GDAL command line tools. Or, you can use a GIS like QGIS or ArcGIS.
 
@@ -70,7 +73,7 @@ sqlite3 lots.db "CREATE INDEX i ON lots (id);"
 
 #### Using GDAL/OGR to create the property database
 
-Now, you'll need to transform that Shapefile into an SQLite database. If you are a GIS expert, you may find it easy to open up your favorite QGIS or ArcGIS and go nuts. 
+Now, you'll need to transform that Shapefile into an SQLite database. If you are a GIS expert, you may find it easy to open up your favorite QGIS or ArcGIS and go nuts.
 
 If you're on OS X and don't have a GIS handy, install [Homebrew](http://brew.sh). Then, paying attention to the fields you noted, do something like this:
 
@@ -104,7 +107,7 @@ You'll now have a command available called `everylot`. It works like this:
 everylot SCREEN_NAME DATABASE.db --config bots.yaml
 ```
 
-This will look in `DATABASE.db` for a table called lots, then sort that table by `id` and grab the first untweeted row. 
+This will look in `DATABASE.db` for a table called lots, then sort that table by `id` and grab the first untweeted row.
 It will check where Google thinks this address is, and make sure it's close to the coordinates in the table. Then it wil use the address (or the coordinates, if they seem more reliable) to find a Streetview image, then post a tweet with this image to `SCREEN_NAME`'s timeline. It will need the authorization keys in `bots.yaml` to do all this stuff.
 
 `everylot` will, by default, try to use `address`, `city` and `state` fields from the database to search Google, then post to Twitter just the `address` field.
@@ -171,9 +174,9 @@ First step is to find the data: google "Baltimore open data", search for parcels
     -d method=export -d format=Shapefile -o baltimore.zip
 > unzip baltimore.zip
 Archive:  baltimore.zip
-  inflating: geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.shp  
-  inflating: geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.shx  
-  inflating: geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.dbf  
+  inflating: geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.shp
+  inflating: geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.shx
+  inflating: geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.dbf
   inflating: geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.prj
 
 # Get a simpler name
@@ -194,7 +197,7 @@ fulladdr: String (254.0)
 ...
 
 # Create an SQLite database, reprojecting the geometries to WGS84. Keep only the desired fields
-> ogr2ogr -f SQLite baltimore_raw.db baltimore.shp baltimore -t_srs EPSG:4326 
+> ogr2ogr -f SQLite baltimore_raw.db baltimore.shp baltimore -t_srs EPSG:4326
     -nln baltimore -select parcelnum,blocknum,fulladdr
 
 # Convert feature centroid to integer latitude, longitude
