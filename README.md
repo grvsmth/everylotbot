@@ -138,7 +138,7 @@ everylot everylotkalamazoo kalamazoo.db --config bots.yaml --search-format '{add
 While you're testing, it might be helpful to use the `--verbose` and `--dry-run` options. Also, use the `--id` option to force `everylot` to post a particular property.
 ````
 everylot everylotpoughkeepsie pkpse.db --config bots.json --verbose --dry-run --id 12345
-```
+````
 
 ### A place for your bot to live
 
