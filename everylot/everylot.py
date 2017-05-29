@@ -84,7 +84,7 @@ class EveryLot(object):
 
         self.conn = sqlite3.connect(database)
 
-        cond = 'tweeted is NULL'
+        cond = 'tweeted = 0'
         if id_:
             cond = "{} = '{}'".format(ID, id_)
 
@@ -174,31 +174,37 @@ class EveryLot(object):
 
         try:
             r = requests.get(GCAPI, params=params)
-            self.logger.debug(r.url)
-
-            if r.status_code != 200:
-                raise ValueError('bad response from google geocode: %s' % r.status_code)
-
-            loc = r.json()['results'][0]['geometry']['location']
-
-            # Cry foul if we're outside of the bounding box
-            outside_comfort_zone = any((
-                loc['lng'] < minpt[1],
-                loc['lng'] > maxpt[1],
-                loc['lat'] > maxpt[0],
-                loc['lat'] < minpt[0]
-            ))
-
-            if outside_comfort_zone:
-                raise ValueError('google geocode puts us outside outside our comfort zone')
-
-            self.logger.debug('using db address for sv')
-            return address
-
         except Exception as e:
             self.logger.info(e)
             self.logger.info('location with db coords: %s, %s', self.lot[LAT], self.lot[LON])
             return '{},{}'.format(self.lot[LAT], self.lot[LON])
+        self.logger.debug(r.url)
+
+        if r.status_code != 200:
+            raise ValueError('bad response from google geocode: %s' % r.status_code)
+
+        try:
+            loc = r.json()['results'][0]['geometry']['location']
+        except Exception as e:
+            self.logger.info(e)
+            self.logger.info(r.json())
+            self.logger.info('location with db coords: %s, %s', self.lot[LAT], self.lot[LON])
+            return '{},{}'.format(self.lot[LAT], self.lot[LON])
+
+        # Cry foul if we're outside of the bounding box
+        outside_comfort_zone = any((
+            loc['lng'] < minpt[1],
+            loc['lng'] > maxpt[1],
+            loc['lat'] > maxpt[0],
+            loc['lat'] < minpt[0]
+        ))
+
+        if outside_comfort_zone:
+            raise ValueError('google geocode puts us outside outside our comfort zone')
+
+        self.logger.debug('using db address for sv')
+        return loc
+
 
     def pick_sentence(self):
         """ Randomly select a sentence appropriate to the species and
