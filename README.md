@@ -1,14 +1,14 @@
 # every tree bot
 
-This is a fork of the *everylotbot* library by Neil Freeman.  It was created by Angus B. Grieve-Smith, Timm Dapper, Laura Silver and Elber Carneiro for the 2016 Trees Count! Data Jam sponsored by the New York City Parks Department.
+This is a fork of the *everylotbot* library by Neil Freeman.  It was created by [Angus B. Grieve-Smith](https://github.com/grvsmth), [Timm Dapper](https://github.com/tdapper), [Laura Silver](http://knish.me/author/) and [Elber Carneiro](https://www.linkedin.com/in/elbercarneiro) for the [2016 Trees Count! Data Jam](http://treescountdatajam.devpost.com/) sponsored by the New York City Parks Department.
 
-*everytreebot* supports a Twitter bot that posts Google Streetview pictures of every property in an SQLite database.  It is currently running at <a href="https://twitter.com/everytreenyc">@everytreenyc</a>.
+*everytreebot* supports a Twitter bot that posts Google Streetview pictures of every property in an SQLite database.  It is currently running at [@everytreenyc](https://twitter.com/everytreenyc).
 
 Existing instances of everylotbot: <a href="https://twitter.com/everylotnyc">@everylotnyc</a>, <a href="https://twitter.com/everylotchicago">@everylotchicago</a>, <a href="https://twitter.com/everylotsf">@everylotsf</a> and <a href="https://twitter.com/everylotla">@everylotla</a>. Since maps are instruments of power, these bots is a way of generating a tension between two different modes establishing power in urban space. [Read more about that](http://fakeisthenewreal.org/everylot/).
 
 ## What you'll need
 
-Set up will be easier with at least a basic familiarity with the command line. A knowledge of GIS will be helpful.
+Set up will be easier with at least a basic familiarity with the command line.
 
 * A fresh Twitter account and a Twitter app, with registered keys
 * A Google Streetview API token.
@@ -17,7 +17,7 @@ Set up will be easier with at least a basic familiarity with the command line. A
 
 ### Twitter keys
 
-Creating Twitter account should be straightforward. To create a Twitter app, register at [apps.twitter.com/](http://apps.twitter.com/). Once you have an app, you'll need to register your account with the app. [Twitter has details](https://dev.twitter.com/oauth/overview/application-owner-access-tokens).
+Creating a Twitter account should be straightforward. To create a Twitter app, register at [apps.twitter.com/](http://apps.twitter.com/). Once you have an app, you'll need to register your account with the app. [Twitter has details](https://dev.twitter.com/oauth/overview/application-owner-access-tokens).
 
 Once you have the keys, save them in a file called `bots.yaml` that looks like this:
 
@@ -48,55 +48,48 @@ streetview: 123ABC123ABC123ABC123ABC
 
 ### Address database
 
-Now, you'll need an SQLite database of addresses. At a minimum, the address database just needs an id field and list of addresses. It's helpful to also have a lat/lon coordinates, since if the Google API can't find a nearby address, the bot will use lat/lon instead.
+Now, you'll need an SQLite database of trees.  For @everytreebot we exported a CSV from New York City's [Socrata site](https://data.cityofnewyork.us/Environment/2015-Street-Tree-Census-Tree-Data/uvpi-gqnh/data).  Here are the fields that we use in the bot:
 
-One way to get this database is to download geodata and convert to to SQLite. Visit your county's open data page (if it has one). Ideally, you'll end up with the data in Shapefile format, which is actually four or five files that look like:
-```
-Parcels_2015.dbf Parcels_2015.prj Parcels_2015.shp Parcels_2015.shx Parcels_2015.shp.xml
-```
+* For general tracking:
+** tree_id
 
-While you're at it, make sure to download the metadata and carefully note the fields you'll want to track. At a minimum, you'll need an ID field and an address field. The address may be broken into several parts, that's fine. A field that tracts the number of floors would be nice, too.
+* For composing the tweets:
+** address
+** health
+** spc_common
+** spc_latin
+** status
+** steward
+** zip_city
 
-Your goal is to create CSV with these fields: `id`, `lat`, `lon`, `tweeted` (the last should just be empty). You must also have some fields that represent the address, like `address`, `city` and `state`. Or, you might have `address_number`, `street_name` and `city`. Optionally, a `floors` field is useful for pointing the Streetview "camera".
+* For Google Street View lookups:
+** address
+** boroname
+** latitude
+** longitude
+** state
+** zip_city
 
-One way to create a CSV like this is using GDAL command line tools. Or, you can use a GIS like QGIS or ArcGIS.
+* We will need to add a column so that we don't tweet the same tree over and over again:
+** tweeted
 
-Convert that CSV to SQLite with one step:
+* We will also need an index unless you have a very small database or lots of spare time
+
+Convert that CSV to SQLite using the SQLite command line:
 ````
-sqlite3 lots.db "import 'stdin' lots" < lots.csv
-````
+sqlite3 trees.db
 
-Add an index unless you have a very small database or lots of spare time:
-````
-sqlite3 lots.db "CREATE INDEX i ON lots (id);"
-````
-
-#### Using GDAL/OGR to create the property database
-
-Now, you'll need to transform that Shapefile into an SQLite database. If you are a GIS expert, you may find it easy to open up your favorite QGIS or ArcGIS and go nuts.
-
-If you're on OS X and don't have a GIS handy, install [Homebrew](http://brew.sh). Then, paying attention to the fields you noted, do something like this:
-
-````
-# this may take a while, you're installing a big software library
-brew install gdal
-
-# Convert the layer to Google's projection and filter the fields
-ogr2ogr -f SQLite Parcels_2015_4326.db Parcels_2015.db -t_srs EPSG:4326 -select taxid,addr,floors
-
-ogr2ogr -f SQLite lots.db Parcels_2015_4326.db -nln lots \
-    -sql "SELECT taxid AS id, addr AS address, floors, \
-        ROUND(X(ST_Centroid(GeomFromWKB(Geometry))), 5) lon, \
-        ROUND(Y(ST_Centroid(GeomFromWKB(Geometry))), 5) lat, \
-        0 tweeted \
-        FROM Parcels_2015_4326 ORDER BY taxid ASC"
+.mode csv
+.import trees.csv
+ALTER TABLE trees ADD COLUMN "tweeted" TEXT default "0";
+CREATE INDEX i ON trees (tree_id);"
 ````
 
 ### Test the bot
 
 Install this repository:
 ````
-> git clone git@github.com:fitnr/everylotbot.git
+> git clone https://github.com/grvsmth/everytreebot.git
 > cd everylotbot
 ````
 
