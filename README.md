@@ -54,24 +54,24 @@ Now, you'll need an SQLite database of trees.  For @everytreebot we exported a C
 ** tree_id
 
 * For composing the tweets:
-** address
-** health
-** spc_common
-** spc_latin
-** status
-** steward
-** zip_city
+  * address
+  * health
+  * spc_common
+  * spc_latin
+  * status
+  * steward
+  * zip_city
 
 * For Google Street View lookups:
-** address
-** boroname
-** latitude
-** longitude
-** state
-** zip_city
+  * address
+  * boroname
+  * latitude
+  * longitude
+  * state
+  * zip_city
 
 * We will need to add a column so that we don't tweet the same tree over and over again:
-** tweeted
+  * tweeted
 
 * We will also need an index unless you have a very small database or lots of spare time
 
@@ -100,10 +100,10 @@ You'll now have a command available called `everylot`. It works like this:
 everylot SCREEN_NAME DATABASE.db --config bots.yaml
 ```
 
-This will look in `DATABASE.db` for a table called lots, then sort that table by `id` and grab the first untweeted row.
+This will look in `DATABASE.db` for a table called trees, then grab an untweeted row at random.
 It will check where Google thinks this address is, and make sure it's close to the coordinates in the table. Then it wil use the address (or the coordinates, if they seem more reliable) to find a Streetview image, then post a tweet with this image to `SCREEN_NAME`'s timeline. It will need the authorization keys in `bots.yaml` to do all this stuff.
 
-`everylot` will, by default, try to use `address`, `city` and `state` fields from the database to search Google, then post to Twitter just the `address` field.
+`everytree` will, by default, try to use `address`, `city` and `state` fields from the database to search Google, then post to Twitter just the `address` field.
 
 You can customize this based on the lay out of your database and the results you want. `everylot` has two options just for this:
 * `--search-format` controls how address will be generated when searching Google
@@ -154,66 +154,3 @@ crontab -e
 ```
 
 (Note that you can omit the `bots.yaml` config file argument if it's located in the home directory.)
-
-### Walkthrough for Baltimore
-
-This walks through the steps of creating an example bot. It uses text-based command line commands, but most of these tasks could be done in programs with graphic interfaces.
-
-First step is to find the data: google "Baltimore open data", search for parcels on [data.baltimorecity.gov](https://data.baltimorecity.gov).
-
-````bash
-# Also works to download through the browser and unzip with the GUI
-> curl -G https://data.baltimorecity.gov/api/geospatial/rb22-mgti \
-    -d method=export -d format=Shapefile -o baltimore.zip
-> unzip baltimore.zip
-Archive:  baltimore.zip
-  inflating: geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.shp
-  inflating: geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.shx
-  inflating: geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.dbf
-  inflating: geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.prj
-
-# Get a simpler name
-> mv geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.shp baltimore.shp
-> mv geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.shx baltimore.shx
-> mv geo_export_9f6b494d-b617-4065-a8e7-23adb09350bc.dbf baltimore.dbf
-
-# Find the address and ID fields. It looks like we'll want to use a combination of
-# blocknum and parcelnum to get a unique ID for each property
-> ogrinfo baltimore.shp baltimore -so
-INFO: Open of `baltimore.shp'
-      using driver `ESRI Shapefile' successful.
-...
-parcelnum: String (254.0)
-...
-blocknum: String (254.0)
-fulladdr: String (254.0)
-...
-
-# Create an SQLite database, reprojecting the geometries to WGS84. Keep only the desired fields
-> ogr2ogr -f SQLite baltimore_raw.db baltimore.shp baltimore -t_srs EPSG:4326
-    -nln baltimore -select parcelnum,blocknum,fulladdr
-
-# Convert feature centroid to integer latitude, longitude
-# Pad the block number and parcel number so sorting works
-# Result will have these columns: id, address, lon, lat, tweeted
-> ogr2ogr -f SQLite baltimore.db baltimore_raw.db -nln lots -nlt NONE -dialect sqlite
-    -sql "WITH A as (
-        SELECT blocknum,
-        parcelnum,
-        fulladdr AS address,
-        ST_Centroid(GeomFromWKB(Geometry)) centroid
-        FROM baltimore
-        WHERE blocknum IS NOT NULL AND parcelnum IS NOT NULL
-    ) SELECT (substr('00000' || blocknum, -5, 5)) || (substr('000000000' || parcelnum, -9, 9)) AS id,
-    address,
-    ROUND(X(centroid), 5) lon,
-    ROUND(Y(centroid), 5) lat,
-    0 tweeted
-    FROM A;"
-
-# Add indexes and clean up sqlite database.
-> sqlite3 baltimore.db "CREATE INDEX i ON lots (id);"
-> sqlite3 baltimore.db "DELETE FROM lots WHERE id = '' OR id IS NULL; VACUUM"
-
-> everylot everylotbaltimore baltimore.db --search-format "{address}, Baltimore, MD"
-````
