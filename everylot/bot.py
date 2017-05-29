@@ -21,7 +21,7 @@ from . import __version__ as version
 from .everylot import EveryLot
 
 ID = 'tree_id'
-LAT = 'latitude'
+LAT = 'Latitude'
 LON = 'longitude'
 
 def main():
@@ -51,7 +51,7 @@ def main():
         logger.error('No lot found')
         return
 
-    logger.debug('%s addresss: %s zip: %s', el.lot[ID], el.lot.get('address'), el.lot.get('zip'))
+    logger.debug('%s addresss: %s zip: %s', el.lot[ID], el.lot.get('address'), el.lot.get('zipcode'))
     logger.debug('db location %s,%s', el.lot[LAT], el.lot[LON])
 
     # get the streetview image and upload it

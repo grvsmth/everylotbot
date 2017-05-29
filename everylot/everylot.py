@@ -22,7 +22,7 @@ from io import BytesIO
 import requests
 import csv, random
 
-TABLE = 'TreesCount2015Trees'
+TABLE = 'trees'
 ID = 'tree_id'
 SORT_ORDER = 'RANDOM()'
 
@@ -31,16 +31,32 @@ GCAPI = "https://maps.googleapis.com/maps/api/geocode/json"
 
 # constants for column names
 
-LAT = 'latitude'
+LAT = 'Latitude'
 LON = 'longitude'
 
 QUERY = """SELECT
-    *
-    FROM """ + TABLE + """
-    where {} = ?
-    ORDER BY """ + SORT_ORDER + """ ASC
+    {}
+    FROM {}
+    where tweeted is NULL
+    ORDER BY {} ASC
     LIMIT 1;
 """
+
+FIELDS = [
+    'tree_id',
+    'address',
+    'boroname',
+    'health',
+    'latitude',
+    'longitude',
+    'spc_common',
+    'spc_latin',
+    'steward',
+    'state',
+    'status',
+    'zipcode',
+    'zip_city'
+    ]
 
 class EveryLot(object):
 
@@ -70,12 +86,18 @@ class EveryLot(object):
             value = id_
         else:
             field = 'tweeted'
-            value = 0
+            value = None
 
 #        print(QUERY.format(field), (value,))
-        curs = self.conn.execute(QUERY.format(field), (value,))
+        fieldq = []
+        fieldlist = ', '.join(FIELDS)
+        print(QUERY.format(fieldlist, TABLE, SORT_ORDER))
+        curs = self.conn.execute(QUERY.format(fieldlist, TABLE, SORT_ORDER))
         keys = [c[0] for c in curs.description]
-        self.lot = dict(zip(keys, curs.fetchone()))
+        print(keys)
+        foo = list(curs.fetchone())
+        print(foo)
+        self.lot = dict(zip(keys, foo))
 
     def aim_camera(self):
         '''Set field-of-view and pitch'''
