@@ -21,7 +21,7 @@ Creating a Twitter account should be straightforward. To create a Twitter app, r
 
 ### Streetview key
 
-Visit the [Google Street View Image API](https://developers.google.com/maps/documentation/streetview/) page and get a key.
+Visit the [Google Street View Image API](https://developers.google.com/maps/documentation/streetview/) page and get a key.  You will also want to enable the [Google Maps Geocoding API](https://developers.google.com/maps/documentation/geocoding/start?hl=en_US) for better targeting.
 
 ### Phrase file
 
@@ -73,12 +73,12 @@ Now, you'll need an SQLite database of trees.  For @everytreebot we exported a C
 
 Convert that CSV to SQLite using the SQLite command line:
 ````
-sqlite3 trees.db
+> sqlite3 trees.db
 
-.mode csv
-.import trees.csv
-ALTER TABLE trees ADD COLUMN "tweeted" TEXT default "0";
-CREATE INDEX i ON trees (tree_id);
+sqlite> .mode csv
+sqlite> .import trees.csv trees
+sqlite> ALTER TABLE trees ADD COLUMN "tweeted" TEXT default "0";
+sqlite> CREATE INDEX i ON trees (tree_id, tweeted);
 ````
 
 ### Test the bot
@@ -87,6 +87,7 @@ Install this repository:
 ````
 > git clone https://github.com/grvsmth/everytreebot.git
 > cd everylotbot
+> python setup.py install
 ````
 
 For this step, make your new Twitter private.
