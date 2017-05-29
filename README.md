@@ -19,32 +19,28 @@ Set up will be easier with at least a basic familiarity with the command line.
 
 Creating a Twitter account should be straightforward. To create a Twitter app, register at [apps.twitter.com/](http://apps.twitter.com/). Once you have an app, you'll need to register your account with the app. [Twitter has details](https://dev.twitter.com/oauth/overview/application-owner-access-tokens).
 
-Once you have the keys, save them in a file called `bots.yaml` that looks like this:
-
-```yaml
-apps:
-    everylot:
-        consumer_key: 123456890123456890
-        consumer_secret: 123456890123456890123456890123456890
-users:
-    example_user_name:
-        key: 123456890123456890-123456890123456890123456890123456890
-        secret: 1234568901234568901234568901234568901234568
-        app: everylot
-```
-
-Change `example_user_name` to your Twitter account screen name. The app name can also be anything you want.
-
-This file can be in `json` format, if you wish.
-
 ### Streetview key
 
-Visit the [Google Street View Image API](https://developers.google.com/maps/documentation/streetview/) page and click get a key.
+Visit the [Google Street View Image API](https://developers.google.com/maps/documentation/streetview/) page and get a key.
 
-Once you have the key, save it on its own line in your `bots.yaml` file like so:
+### Phrase file
+
+For the NYC Trees Count! Data Jam, Laura Silver created a range of phrases and templates to be chosen semi-randomly when composing tweets.  These are available in the *EveryTreeNYC_Phrases.csv* file in this repository.  You will need to specify the full path to that file.
+
+Once you have the keys and path, save them in a file called `bots.yaml` that looks like this:
+
 ```yaml
-streetview: 123ABC123ABC123ABC123ABC
+consumer_key: 123456890123456890
+consumer_secret: 123456890123456890123456890123456890
+key: 123456890123456890-123456890123456890123456890123456890
+secret: 1234568901234568901234568901234568901234568
+app: everylot
+streetview: 1234567890asdfghjklQWERTYUIOP
+phrasefile: /home/example/everylot/data/phrases.csv
+
 ```
+
+This file can be in `json` format, if you wish.
 
 ### Address database
 
