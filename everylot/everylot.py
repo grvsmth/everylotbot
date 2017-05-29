@@ -1,7 +1,7 @@
 #!/usr/env python
 # -*- coding: utf-8 -*-
 # This file is part of everylotbot
-# Copyright 2016 Neil Freeman
+# Copyright 2016 Neil Freeman, forked by Angus B. Grieve-Smith and Timm Dapper
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
 import sqlite3
 import logging
 from io import BytesIO
@@ -37,7 +36,7 @@ LON = 'longitude'
 QUERY = """SELECT
     {}
     FROM {}
-    where tweeted is NULL
+    where {}
     ORDER BY {} ASC
     LIMIT 1;
 """
@@ -54,23 +53,27 @@ FIELDS = [
     'steward',
     'state',
     'status',
-    'zipcode',
     'zip_city'
     ]
 
 class EveryLot(object):
 
-    def __init__(self, database,
-                 search_format=None,
-                 print_format=None,
-                 id_=None,
-                 **kwargs):
+    def __init__(
+        self,
+        database,
+        search_format=None,
+        print_format=None,
+        id_=None,
+        phrasefile='data/phrases.csv',
+        logger=logging.getLogger('everylot')
+        ):
         """
         An everylot class immediately checks the database for the next available entry,
         or for the passed 'id_'. It stores this data in self.lot.
         :database str file name of database
         """
-        self.logger = kwargs.get('logger', logging.getLogger('everylot'))
+        self.logger = logger
+        self.phrasefile = phrasefile
 
         # set address format for fetching from DB
         self.search_format = search_format or '{address}, {zip_city} {state}'
@@ -81,22 +84,14 @@ class EveryLot(object):
 
         self.conn = sqlite3.connect(database)
 
+        cond = 'tweeted is NULL'
         if id_:
-            field = ID
-            value = id_
-        else:
-            field = 'tweeted'
-            value = None
+            cond = "{} = '{}'".format(ID, id_)
 
-#        print(QUERY.format(field), (value,))
-        fieldq = []
         fieldlist = ', '.join(FIELDS)
-        print(QUERY.format(fieldlist, TABLE, SORT_ORDER))
-        curs = self.conn.execute(QUERY.format(fieldlist, TABLE, SORT_ORDER))
+        curs = self.conn.execute(QUERY.format(fieldlist, TABLE, cond, SORT_ORDER))
         keys = [c[0] for c in curs.description]
-        print(keys)
         foo = list(curs.fetchone())
-        print(foo)
         self.lot = dict(zip(keys, foo))
 
     def aim_camera(self):
@@ -206,9 +201,6 @@ class EveryLot(object):
             return '{},{}'.format(self.lot[LAT], self.lot[LON])
 
     def pick_sentence(self):
-        treeInfo = self.lot
-        pickedSentence = ''
-
         """ Randomly select a sentence appropriate to the species and
         health status
 
@@ -219,11 +211,11 @@ class EveryLot(object):
         curly braces.
 
         """
-
+        treeInfo = self.lot
+        pickedSentence = ''
 
         # pick a sentence
-        with open('data/EveryTreeNYC_Phrases.csv', 'rU') as csvfile:
-            #reader = csv.reader(csvfile, delimiter=',', quotechar='"')
+        with open(self.phrasefile, 'rU') as csvfile:
             reader = csv.DictReader(csvfile)
 
             sentenceList = []
@@ -262,9 +254,6 @@ class EveryLot(object):
         if ('Honeylocust var. inermis' == self.lot['spc_common']):
             self.lot['spc_common'] = 'Honey locust'
 
-#        if (random.choice([True, False])):
-#            status = self.print_format.format(**self.lot)
-#        else:
         status = self.pick_sentence()
 
         return {
