@@ -51,7 +51,7 @@ streetview: 123ABC123ABC123ABC123ABC
 Now, you'll need an SQLite database of trees.  For @everytreebot we exported a CSV from New York City's [Socrata site](https://data.cityofnewyork.us/Environment/2015-Street-Tree-Census-Tree-Data/uvpi-gqnh/data).  Here are the fields that we use in the bot:
 
 * For general tracking:
-** tree_id
+  * tree_id
 
 * For composing the tweets:
   * address
@@ -82,7 +82,7 @@ sqlite3 trees.db
 .mode csv
 .import trees.csv
 ALTER TABLE trees ADD COLUMN "tweeted" TEXT default "0";
-CREATE INDEX i ON trees (tree_id);"
+CREATE INDEX i ON trees (tree_id);
 ````
 
 ### Test the bot
@@ -136,7 +136,6 @@ everylot everylotkalamazoo kalamazoo.db --config bots.yaml --search-format '{add
 ````
 
 While you're testing, it might be helpful to use the `--verbose` and `--dry-run` options. Also, use the `--id` option to force `everylot` to post a particular property.
-
 ````
 everylot everylotpoughkeepsie pkpse.db --config bots.json --verbose --dry-run --id 12345
 ```
