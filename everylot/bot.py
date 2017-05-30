@@ -17,26 +17,28 @@
 import argparse
 import datetime
 import logging
+import pytz
 import twitter_bot_utils as tbu
 from . import __version__ as version
 from .everylot import EveryLot
 
-def badtime(hoursbetween=1, quiethours=None):
+def badtime(hoursbetween=1, quiethours=None, timezone='US/Eastern', logger=None):
     """
     Some schedulers (like Pythonanywhere's) only give you the choice between
     hourly or daily.  This allows us to filter the hour.  It's a bad time if
     it's been less than hoursbetween, or if it's during quiethours
     """
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(pytz.timezone(timezone))
+    logger.debug("The hour is: {}".format(now.hour))
 
     if hoursbetween and now.hour % hoursbetween > 0:
-        return False
-    if quiethours and now.hour > quiethours[0]:
-        return False
+        return True
+    if quiethours and now.hour >= quiethours[0]:
+        return True
     if quiethours and now.hour < quiethours[1]:
-        return False
+        return True
 
-    return True
+    return False
 
 def main():
     parser = argparse.ArgumentParser(description='every lot twitter bot')
@@ -55,10 +57,15 @@ def main():
     logger = logging.getLogger(args.user)
     logger.debug('everylot starting with %s, %s', args.user, args.database)
 
-    if 'hoursbetween' in api.config or 'quiethours' in api.config\
-        and badtime(api.config['hoursbetween'], api.config['quiethours']):
+    if ('hoursbetween' in api.config or 'quiethours' in api.config) \
+        and badtime(
+            api.config['hoursbetween'],
+            api.config['quiethours'],
+            api.config.get('timezone', None),
+            logger
+            ):
         logger.debug(
-            "It's a bad time for tweeting (hoursbetween={}, quiet={}".format(
+            "It's a bad time for tweeting (hoursbetween={}, quiet={})".format(
                 api.config['hoursbetween'],
                 api.config['quiethours']
                 )
