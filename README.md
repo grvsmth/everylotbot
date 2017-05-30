@@ -146,7 +146,16 @@ Put the `bots.yaml` file and your database in the same folder on your server, th
 Next, you want to set up the bot to tweet regularly. If this is a Linux machine, you can do this with crontab:
 ```
 crontab -e
-1,31 * * * * $HOME/.local/bin/everylot screen_name $HOME/path/to/lots.db -s '{address} Anytown USA'
+1,31 * * * * $HOME/.local/bin/everylot screen_name $HOME/path/to/trees.db --config $HOME/path/to/bots.yaml
 ```
+
+### Flexible scheduling with badtime variables
+
+Some schedulers (like the one provided by pythonanywhere.com) only allow scheduling every hour, or every day.  The *badtime()* function allows you to specify two parameters in the *bots.yaml* file:
+
+* *hoursbetween* indicates how many hours the script should wait in between tweets, e.g. a value of 3 will tweet every three hours
+* *quiethours* is a list indicating a range of hours when tweeting shouldn't happen, e.g. a value of [23, 7] will not tweet between the hours of 11pm and 7am
+
+(The function is not sophisticated enough to deal with a quiethours range where both hours are on the same side of midnight.)
 
 (Note that you can omit the `bots.yaml` config file argument if it's located in the home directory.)
