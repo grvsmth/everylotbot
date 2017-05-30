@@ -21,7 +21,7 @@ Creating a Twitter account should be straightforward. To create a Twitter app, r
 
 ### Streetview key
 
-Visit the [Google Street View Image API](https://developers.google.com/maps/documentation/streetview/) page and get a key.  You will also want to enable the [Google Maps Geocoding API](https://developers.google.com/maps/documentation/geocoding/start?hl=en_US) for better targeting.
+Visit the [Google Street View Image API](https://developers.google.com/maps/documentation/streetview/) page and get a key.
 
 ### Phrase file
 
