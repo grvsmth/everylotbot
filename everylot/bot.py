@@ -15,10 +15,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import datetime
 import logging
 import twitter_bot_utils as tbu
 from . import __version__ as version
 from .everylot import EveryLot
+
+def badtime(hoursbetween=1, quiethours=None):
+    """
+    Some schedulers (like Pythonanywhere's) only give you the choice between
+    hourly or daily.  This allows us to filter the hour.  It's a bad time if
+    it's been less than hoursbetween, or if it's during quiethours
+    """
+    now = datetime.datetime.now()
+
+    if hoursbetween and now.hour % hoursbetween > 0:
+        return False
+    if quiethours and now.hour > quiethours[0]:
+        return False
+    if quiethours and now.hour < quiethours[1]:
+        return False
+
+    return True
 
 def main():
     parser = argparse.ArgumentParser(description='every lot twitter bot')
@@ -36,6 +54,16 @@ def main():
 
     logger = logging.getLogger(args.user)
     logger.debug('everylot starting with %s, %s', args.user, args.database)
+
+    if 'hoursbetween' in api.config or 'quiethours' in api.config\
+        and badtime(api.config['hoursbetween'], api.config['quiethours']):
+        logger.debug(
+            "It's a bad time for tweeting (hoursbetween={}, quiet={}".format(
+                api.config['hoursbetween'],
+                api.config['quiethours']
+                )
+            )
+        exit(0)
 
     el = EveryLot(args.database,
                   logger=logger,
