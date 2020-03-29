@@ -1,0 +1,17 @@
+-f /usr/share/pip-wheels
+appdirs==1.4.3
+certifi==2017.4.17
+chardet==3.0.3
+everylot==0.3.0
+idna==2.5
+oauthlib==2.0.2
+packaging==16.8
+pyparsing==2.2.0
+pytz==2017.2
+PyYAML==3.11
+requests==2.17.1
+requests-oauthlib==0.8.0
+six==1.10.0
+tweepy==3.5.0
+twitter-bot-utils==0.11.5
+urllib3==1.21.1
